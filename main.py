@@ -1,5 +1,6 @@
 import requests
 import ConfigParser
+import responseobjects
 
 def getApiKey():
     config = ConfigParser.RawConfigParser()
@@ -20,6 +21,6 @@ listRequest = { "client": { "clientId": "yourcompanyname", "clientVersion":  "1.
 
 r = requests.post("https://safebrowsing.googleapis.com/v4/threatListUpdates:fetch?key=" + getApiKey(), json=listRequest)
 if r.status_code < 400:
-    print r.json()
+    print responseobjects.ListUpdateResponse(r.json())
 else:
     print r.text
