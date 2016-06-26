@@ -1,8 +1,5 @@
 class UpdateResponseHashes(object):
     def __init__(self, jsoninput):
-        if not jsoninput["compressionType"] == "RAW":
-            raise ValueError("Only RAW compression supported")
-
         rawobject = jsoninput["rawHashes"]
         prefixlen = rawobject["prefixSize"]
         rawhashes = rawobject["rawHashes"]
@@ -23,6 +20,39 @@ class UpdateResponseHashes(object):
         strobj += "Hashes: " + str(self.hashes) + "\n"
         return strobj
 
+class UpdateResponseIndices(object):
+    def __init__(self, jsoninput):
+        if not jsoninput["compressionType"] == "RAW":
+            raise ValueError("Only RAW compression supported")
+
+        self.indices = jsoninput["rawIndices"]
+    
+    def __str__(self):
+        strobj = ""
+        strobj += "Indices: " + str(self.indices) + "\n"
+        return strobj        
+
+class UpdateThreatSet(object):
+    def __init__(self, jsoninput):
+        if not jsoninput["compressionType"] == "RAW":
+            raise ValueError("Only RAW compression supported")
+
+        self.hashes = []
+        self.indices = []
+
+        if jsoninput.has_key('rawHashes'):
+            self.hashes.append(UpdateResponseHashes(jsoninput))
+
+        if jsoninput.has_key('rawIndices'):
+            self.indices.append(UpdateResponseIndices(jsoninput))
+
+    def __str__(self):
+        strobj = ""
+        strobj += "Hashes: " + "".join(["\n\t" + str(x) for x in self.hashes])
+        strobj += "Indices: " + "".join(["\n\t" + str(x) for x in self.indices])
+        return strobj
+
+
 class UpdateResponse(object):
     def __init__(self, jsonresponse):
         self.__parse(jsonresponse)
@@ -38,9 +68,9 @@ class UpdateResponse(object):
         self.additions = []
         self.removals = []
         if jsonresponse.has_key('additions'):
-            self.additions = [UpdateResponseHashes(x) for x in jsonresponse['additions']]
+            self.additions = [UpdateThreatSet(x) for x in jsonresponse['additions']]
         if jsonresponse.has_key('removals'):
-            self.removals = [UpdateResponseHashes(x) for x in jsonresponse['removals']]
+            self.removals = [UpdateThreatSet(x) for x in jsonresponse['removals']]
 
     def __str__(self):
         strobj = ""
