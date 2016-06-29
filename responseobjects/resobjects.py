@@ -1,3 +1,5 @@
+import base64
+
 class UpdateResponseHashes(object):
     def __init__(self, jsoninput):
         rawobject = jsoninput["rawHashes"]
