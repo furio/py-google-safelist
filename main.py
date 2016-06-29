@@ -14,13 +14,19 @@ apiRequest = requestsapi.RequestData(getApiKey(), "Furiosoft")
 threatList = apiRequest.getthreatlists() 
 datalist = []
 lastclistate = None
+checksums = []
 
-for x in xrange(3):
-    sys.stdout.write(str(x) + " ")
+while True:
+    sys.stdout.write(str(len(datalist)) + " ")
     data = apiRequest.getupdateforthreat(threatList[0], lastclistate)
     if data is not None:
-        lastclistate = data.responses[-1].client['state']
-        time.sleep(data.nextcheck / 1000)
+        if lastclistate != data.responses[-1].client['state']:
+            lastclistate = data.responses[-1].client['state']
+            checksums.append(data.responses[-1].client['checksum']['sha256'])
+            datalist.append(data)
+            time.sleep(data.nextcheck / 1000)
+        else:
+            break
     else:
         break
 
@@ -32,21 +38,23 @@ for x in datalist:
     for y in x.responses:
         for z in y.additions:
             for w in z.hashes:
-                print w.hashes
                 hasheslist.extend(w.hashes)
 
-hasheslist.sort()
+print hasheslist[0:10]
+sortedlist = sorted(hasheslist)
+print sortedlist[0:10]
 
 print "Hashes"
-print len(hasheslist)
-sha2 = hashlib.sha256("".join(hasheslist)).digest()
+print len(sortedlist)
+sha2 = hashlib.sha256(b''.join(sortedlist)).digest()
 print "-"
 print sha2
 print base64.b64decode(lastclistate)
 print "-"
 print base64.b64encode(sha2)
 print lastclistate
-
+print "-"
+print checksums
 
 '''
 for threat in threatList:

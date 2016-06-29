@@ -5,13 +5,14 @@ class UpdateResponseHashes(object):
         rawobject = jsoninput["rawHashes"]
         prefixlen = rawobject["prefixSize"]
         rawhashes = rawobject["rawHashes"]
+        rawhashes = base64.b64decode(rawhashes)
 
         if not (len(rawhashes)%prefixlen) == 0:
             raise IndexError("Raw hashes mismatch on prefixes", rawhashes, prefixlen)
 
         self.prefix = prefixlen
         self.hashes = []
-        
+
         while not len(rawhashes) == 0:
             self.hashes.append(rawhashes[:prefixlen])
             rawhashes = rawhashes[prefixlen:]
