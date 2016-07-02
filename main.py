@@ -4,6 +4,8 @@ import time
 import sys
 import hashlib
 import base64
+import datastore
+import os
 
 def getApiKey():
     config = ConfigParser.RawConfigParser()
@@ -16,6 +18,10 @@ datalist = []
 lastclistate = None
 checksums = []
 
+with datastore.ThreatStore(os.path.abspath('./save'),threatList) as a:
+    print "wow"
+
+'''
 while True:
     sys.stdout.write(str(len(datalist)) + " ")
     data = apiRequest.getupdateforthreat(threatList[0], lastclistate)
@@ -55,6 +61,7 @@ print base64.b64encode(sha2)
 print lastclistate
 print "-"
 print checksums
+'''
 
 '''
 for threat in threatList:

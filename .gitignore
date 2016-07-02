@@ -89,8 +89,9 @@ ENV/
 .ropeproject
 
  # Mac stuff
- .DS_Store
+.DS_Store
 
 # Custom
 config.cfg
 .vscode/
+save/
