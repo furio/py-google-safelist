@@ -1,9 +1,9 @@
 import ConfigParser
 import requestsapi
 import time
-import sys
-import hashlib
-import base64
+# import sys
+# import hashlib
+# import base64
 import datastore
 import os
 
@@ -18,8 +18,42 @@ datalist = []
 lastclistate = None
 checksums = []
 
-with datastore.ThreatStore(os.path.abspath('./save'),threatList) as a:
-    print "wow"
+with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
+    for threat in threatList:
+        print threat
+        datalist = []
+        lastclistate = None
+        checksums = []
+        #
+        while True:
+            data = apiRequest.getupdateforthreat(threat, lastclistate)
+            if data is not None:
+                if lastclistate != data.responses[-1].client['state']:
+                    lastclistate = data.responses[-1].client['state']
+                    checksums.append(data.responses[-1].client['checksum']['sha256'])
+                    datalist.append(data)
+                    time.sleep(data.nextcheck / 1000)
+                else:
+                    break
+            else:
+                break
+        #
+        if len(datalist) > 0:
+            print "Saving" # Here we need to check if smth is already there and indices removals
+            for x in datalist:
+                for y in x.responses:
+                    for z in y.additions:
+                        for w in z.hashes:
+                            for u in w.hashes:
+                                # unqlite not accepting all bytes?
+                                tstore.set(threat,u)
+                
+            tstore.set('KEEPER',threat + ':lastclistate', lastclistate)
+            tstore.set('KEEPER',threat + ':checksums', checksums[-1])
+
+            print lastclistate
+            print checksums[-1]
+            print tstore.keyschecksum(threat, True)
 
 '''
 while True:
