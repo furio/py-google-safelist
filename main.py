@@ -1,22 +1,32 @@
 import ConfigParser
 import requestsapi
-import time
-# import sys
-# import hashlib
-# import base64
 import datastore
 import os
+import managedata
 
 def getApiKey():
     config = ConfigParser.RawConfigParser()
     config.read("config.cfg")
     return config.get("google","key")
 
+dbpath = os.path.abspath('./save')
 apiRequest = requestsapi.RequestData(getApiKey(), "Furiosoft")
 threatList = apiRequest.getthreatlists() 
+
+# Test
+with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
+    threatList = threatList[0:1]
+    with managedata.ProcessingDataFromGoogle(tstore, threatList,apiRequest) as processor:
+        print "Joining"
+        processor.join()
+
+
+''''
 datalist = []
 lastclistate = None
 checksums = []
+
+
 
 with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
     for threat in threatList:
@@ -54,6 +64,8 @@ with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
             print lastclistate
             print checksums[-1]
             print tstore.keyschecksum(threat, True)
+
+'''
 
 '''
 while True:

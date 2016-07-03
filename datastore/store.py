@@ -4,11 +4,18 @@ import base64
 
 class ThreatStore(object):
     def __init__(self,dbpath,dbtypes):
+        self.__dbpath = dbpath
         self.__dbpointers = {}
         for x in dbtypes:
-            self.__dbpointers[x] = plyvel.DB(dbpath + '/' + x, create_if_missing=True)
+            self.__dbpointers[x] = self.__createdb(x)
       
-        self.__dbpointers['KEEPER'] = plyvel.DB(dbpath + '/master-records', create_if_missing=True)
+        self.__dbpointers['KEEPER'] = self.__createdb('master-records')
+
+    def __createdb(self, dbname):
+        return plyvel.DB(self.__dbpath + '/' + dbname, create_if_missing=True)
+
+    def __truncatedb(self, dbname):
+        plyvel.destroy_db(self.__dbpath + '/' + dbname)
 
     def __enter__(self):
         return self
@@ -19,6 +26,17 @@ class ThreatStore(object):
 
     def dbs(self):
         return self.__dbpointers.keys()
+
+    def removeat(self, store, indices):
+        if len(indices) > 0:
+            pos = 0
+            remkeys = []
+            for key in self.__dbpointers[store].iterator(include_value=False):
+                if pos in indices:
+                    remkeys.append(key)
+                pos = pos + 1
+            for key in remkeys:
+                self.delete(store,key)
 
     def get(self,store,key):
         return self.__dbpointers[store].fetch(str(key))
@@ -34,7 +52,7 @@ class ThreatStore(object):
 
     def keyschecksum(self,store,baseencoded=False):
         keys = []
-        for key,val in self.__dbpointers[store]:
+        for key in self.__dbpointers[store].iterator(include_value=False):
             keys.extend(key)
 
         hashdata = hashlib.sha256(b''.join(keys)).digest()
@@ -42,4 +60,9 @@ class ThreatStore(object):
             return base64.b64encode(hashdata)
         else:
             return hashdata
-        
+
+    def truncate(self,store):
+        # Possible KABOOM
+        self.__dbpointers[store].close()
+        self.__truncatedb(store)
+        self.__dbpointers[store] = self.__createdb(store)
