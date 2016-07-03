@@ -39,10 +39,10 @@ class ThreatStore(object):
                 self.delete(store,key)
 
     def get(self,store,key):
-        return self.__dbpointers[store].fetch(str(key))
+        return self.__dbpointers[store].get(str(key))
 
     def exist(self,store,key):
-        return self.__dbpointers[store].exists(str(key))
+        return self.get(store,key) is not None
 
     def set(self,store,key,val=''):
         self.__dbpointers[store].put(str(key),str(val))

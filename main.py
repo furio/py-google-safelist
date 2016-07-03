@@ -3,6 +3,7 @@ import requestsapi
 import datastore
 import os
 import managedata
+import time
 
 def getApiKey():
     config = ConfigParser.RawConfigParser()
@@ -14,12 +15,16 @@ apiRequest = requestsapi.RequestData(getApiKey(), "Furiosoft")
 threatList = apiRequest.getthreatlists() 
 
 # Test
+threatList = threatList[0:2]
+print "Starting magic ...."
 with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
-    threatList = threatList[0:1]
-    with managedata.ProcessingDataFromGoogle(tstore, threatList,apiRequest) as processor:
-        print "Joining"
-        processor.join()
+    print tstore.exist('KEEPER','ciaone')
+    with managedata.ProcessingDataFromGoogle(tstore, threatList, apiRequest) as googleproc:
+        while True:
+            time.sleep(5)
+            #googleproc.wait()
 
+print ".... done"
 
 ''''
 datalist = []
