@@ -11,7 +11,7 @@ def getApiKey():
     return config.get("google","key")
 
 dbpath = os.path.abspath('./save')
-apiRequest = requestsapi.RequestData(getApiKey(), "Furiosoft")
+apiRequest = requestsapi.RequestData(getApiKey(), "Furiosoft", 64000)
 threatList = apiRequest.getthreatlists() 
 
 # Test
@@ -21,7 +21,7 @@ with datastore.ThreatStore(os.path.abspath('./save'),threatList) as tstore:
     print tstore.exist('KEEPER','ciaone')
     with managedata.ProcessingDataFromGoogle(tstore, threatList, apiRequest) as googleproc:
         while True:
-            time.sleep(5)
+            time.sleep(60)
             #googleproc.wait()
 
 print ".... done"

@@ -43,9 +43,10 @@ class ProcessingDataFromGoogle(object):
         print "Indices["+threatname+"] " + str(len(remindices))
 
         # Modify store
+        print "Modifying indices["+threatname+"]"
         tstore.removeat(threatname, remindices)
-        for newhash in addhashes:
-            tstore.set(threatname, newhash)
+        print "Modifying hahses["+threatname+"]"
+        tstore.putsKeys(threatname, addhashes)
 
     def __worker(self, threatname, stopevent, tstore, reqclass):
         while(not stopevent.is_set()):
@@ -73,6 +74,7 @@ class ProcessingDataFromGoogle(object):
                             tstore.set('KEEPER',threatname + ':lastclistate', lastclistate)
                             tstore.set('KEEPER',threatname + ':checksum', dbchecksum)
                         else:
+                            print "Destroyin db for " + threatname
                             lastclistate = None
                             tstore.delete('KEEPER',threatname + ':lastclistate')
                             tstore.delete('KEEPER',threatname + ':checksum')

@@ -47,6 +47,16 @@ class ThreatStore(object):
     def set(self,store,key,val=''):
         self.__dbpointers[store].put(str(key),str(val))
 
+    def puts(self,store,tuplelist):
+        with self.__dbpointers[store].write_batch() as writer:
+            for keyandval in tuplelist:
+                writer.put(str(keyandval[0]),str(keyandval[1]))
+
+    def putsKeys(self,store,keylist,val=''):
+        with self.__dbpointers[store].write_batch() as writer:
+            for key in keylist:
+                writer.put(str(key),str(val))
+
     def delete(self,store,key):
         self.__dbpointers[store].delete(str(key))
 

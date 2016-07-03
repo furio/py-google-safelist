@@ -2,10 +2,9 @@ import requests
 import responseobjects
 
 class RequestData(object):
-    def __init__(self,apikey,companyname):
-        self.__apikey = apikey
-        # "maxUpdateEntries": 4096, 
-        self.__reqobj = {"client": { "clientId": companyname, "clientVersion":  "1.5.2"}, "listUpdateRequests": [{"threatType": "", "platformType": "ANY_PLATFORM", "threatEntryType": "URL", "constraints": { "region": "US", "supportedCompressions": ["RAW"]}}]}
+    def __init__(self,apikey,companyname,maxsize=4096):
+        self.__apikey = apikey 
+        self.__reqobj = {"client": { "clientId": companyname, "clientVersion":  "1.5.2"}, "listUpdateRequests": [{"threatType": "", "platformType": "ANY_PLATFORM", "threatEntryType": "URL", "constraints": { "maxUpdateEntries": maxsize, "region": "US", "supportedCompressions": ["RAW"]}}]}
 
     def getthreatlists(self):
         r = requests.get("https://safebrowsing.googleapis.com/v4/threatLists", {'key': self.__apikey})
