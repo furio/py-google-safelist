@@ -1,4 +1,4 @@
 Cython==0.24
+plyvel==0.9
 protobuf==3.0.0b3
 requests==2.10.0
-unqlite==0.5.3
