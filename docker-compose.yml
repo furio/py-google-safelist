@@ -1,0 +1,11 @@
+version: '2'
+services:
+    cache:
+        image: redis
+    
+    pydbg:
+        build: .
+        links:
+            - cache
+        volumes:
+            - /Users/furione/git/py-google-safelist:/tmp/py-project 
