@@ -10,6 +10,7 @@ class ProcessingDataFromGoogle(object):
         
     def __enter__(self):
         self.start()
+        return self
     
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
