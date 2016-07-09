@@ -21,6 +21,9 @@ class ThreatStore(object):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
+        self.close()
+
+    def close(self):
         for key in self.__dbpointers.keys():
             self.__dbpointers[key].close()
 

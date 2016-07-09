@@ -1,7 +1,5 @@
 import threading
 
-
-
 # Many workers as dbs
 class ProcessingDataFromGoogle(object):
     def __init__(self, dbptr, threats, requestclass):
@@ -11,6 +9,12 @@ class ProcessingDataFromGoogle(object):
         self.__workers = []
         
     def __enter__(self):
+        self.start()
+    
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.stop()
+
+    def start(self):
         for threat in self.__threats:
             tevent = threading.Event()
             t = threading.Thread(target=self.__worker, args=(threat, tevent, self.__database, self.__reqclass))
@@ -18,15 +22,9 @@ class ProcessingDataFromGoogle(object):
             t.daemon = True
             t.start()
     
-    def __exit__(self, exception_type, exception_value, traceback):
+    def stop(self):
         for runningthreads in self.__workers:
             runningthreads[1].set()
-
-    def wait(self):
-        print self.__workers
-        for runningthreads in self.__workers:
-            print runningthreads
-            runningthreads[0].join()
 
     def __addandremdata(self, threatname, tstore, data):
         remindices = []

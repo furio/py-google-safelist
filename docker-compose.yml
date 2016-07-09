@@ -8,4 +8,6 @@ services:
         links:
             - cache
         volumes:
-            - /Users/furione/git/py-google-safelist:/tmp/py-project 
+            - /Users/furione/git/py-google-safelist:/tmp/py-project
+        ports:
+            - "5000:5000"
