@@ -12,7 +12,7 @@ class RequestData(object):
                         "client": { "clientId": companyname, "clientVersion":  __CLIENT_VERSION__},
                         "listUpdateRequests": [
                             {"threatType": "", "platformType": __ANY_PLATFORM__, "threatEntryType": __THREAT_URL__, 
-                            "constraints": { "maxUpdateEntries": maxsize, "region": "US", "supportedCompressions": ["RAW"]}}
+                            "constraints": { "region": "US", "supportedCompressions": ["RAW"]}}
                         ]}
         self.__detailobj = {
                         "client": { "clientId": companyname, "clientVersion":  __CLIENT_VERSION__},
@@ -24,6 +24,8 @@ class RequestData(object):
                                 "threatEntries": []
                             }                        
                         }
+        if maxsize != -1:
+            self.__reqobj['listUpdateRequests'][0]['constraints'].update({"maxUpdateEntries": maxsize})
 
     def getthreatlists(self):
         r = requests.get("https://safebrowsing.googleapis.com/v4/threatLists", {'key': self.__apikey})
