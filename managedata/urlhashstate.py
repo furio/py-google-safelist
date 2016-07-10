@@ -50,7 +50,7 @@ class UrlHashState(object):
 
         logging.info("[CHECKER] Preparing to call G : %s", str( possiblethreats ))
         gcall = self.__collectFromGoogle(possiblethreats)
-        logging.info("[CHECKER] Call G done : %s", str( gcall ))
+        logging.info("[CHECKER] Call G done ")
         if gcall is None:
             return False
 
