@@ -33,6 +33,10 @@ class ProcessingDataFromGoogle(object):
         for runningthreads in self.__workers:
             runningthreads[1].set()
 
+    def waitforclose(self):
+        for runningthreads in self.__workers:
+            runningthreads[0].join()            
+
     def __addandremdata(self, threatname, tstore, data):
         remindices = []
         addhashes = []

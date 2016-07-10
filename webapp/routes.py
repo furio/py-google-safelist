@@ -1,4 +1,4 @@
-from . import app, urlmanager
+from . import app, urlmanager, googleproc, tstore
 from flask import request
 from flask import jsonify
 import base64
@@ -28,3 +28,11 @@ def checkurlstatus():
 
     aurl = urlmanager.isUrlBlocked(jsonreq['url'])
     return jsonify(**{"results": aurl})
+
+@app.route("/shutdown", methods = ["GET"])
+def shutdown():
+    googleproc.stop()
+    googleproc.waitforclose()
+    tstore.close()
+
+    return jsonify(**{"msg": "You can safely shutdown the server now"})
