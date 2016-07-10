@@ -23,23 +23,29 @@ class UrlHashState(object):
 
         print "[CHECKER] Hashes: " + str(hashesofurl)
 
-        # Check if the cache has something
-        cachestatus = self.__checkCache(hashesofurl)
-        if cachestatus[0] is False:
-            return True
-
         # From db
-        possibledbthreats = self.__checkLocaldb(cachestatus[1])
-        print "[CHECKER] DB matches: " + str( len(possibledbthreats) )
-        if len(possibledbthreats) == 0:
-            possibledbthreats = [ (self.__threats[0], x) for x in hashesofurl]
+        possiblethreats = self.__checkLocaldb(hashesofurl)
+        uniquepossibethreats = list(set([y for x in possiblethreats.keys() for y in possiblethreats[x]]))
+        print "[CHECKER] DB matches: " + str( len(uniquepossibethreats) )
+        if len(uniquepossibethreats) == 0:
+            uniquepossibethreats = hashesofurl[:]
             # return False
         
+        # Check if the cache has something
+        cachestatus, cachehashes = self.__checkCache(uniquepossibethreats)
+        if cachestatus is False:
+            return True
+
         # Can i call G 
         if self.__nextrequest > int(time.time()):
             return False
 
-        gcall = self.__collectFromGoogle(possibledbthreats)
+        for tkey in possiblethreats.keys():
+            possiblethreats[tkey] = [x for x in possiblethreats[tkey] if x in cachehashes]
+            if len(possiblethreats[tkey]) == 0:
+                del possiblethreats[tkey]
+
+        gcall = self.__collectFromGoogle(possiblethreats)
         if gcall is None:
             # backoff
             return False
@@ -55,28 +61,24 @@ class UrlHashState(object):
 
         # return False
 
-    def __collectFromGoogle(self,tuplesthreathash):
-        print tuplesthreathash
-
-        threats = set()
-        prefixes = []
-
-        for tupleth in tuplesthreathash:
-            threats.add(tupleth[0])
-            prefixes.append(base64.b64encode(tupleth[1][:__PREFIXLEN__]))
-
-        threats = list(threats)
-
+    def __collectFromGoogle(self, possiblethreats):
+        encodedprefixes = set()
         threatsandstates = []
-        for threat in threats:
-            if (self.__tstore.exist('KEEPER',threat + ':lastclistate')):
-                threatsandstates.append((threat, self.__tstore.get('KEEPER',threat + ':lastclistate')))
+
+        for tkey in possiblethreats.keys():
+            if (self.__tstore.exist('KEEPER',tkey + ':lastclistate')):
+                threatsandstates.append((tkey, self.__tstore.get('KEEPER',tkey + ':lastclistate')))
+
+            for vhash in possiblethreats[tkey]:
+                encodedprefixes.add(base64.b64encode(vhash[:__PREFIXLEN__]))
 
         if len(threatsandstates) == 0:
             return {}
 
-        print "[CHECKER] Sending request for : " + str( threatsandstates ) + " and " + str(len(prefixes)) + " prefixes"
-        return self.__apimanager.getthreatspecific(threatsandstates,prefixes)
+        encodedprefixes = list(encodedprefixes)
+
+        print "[CHECKER] Sending request for : " + str( threatsandstates ) + " and " + str(len(encodedprefixes)) + " prefixes"
+        return self.__apimanager.getthreatspecific(threatsandstates,encodedprefixes)
         
 
     def __getUrlHashes(self,url):
@@ -89,18 +91,19 @@ class UrlHashState(object):
         for urlhash in hashesofurl:
             if self.__cache.get(base64.b64encode(urlhash[:__PREFIXLEN__])) is not None:
                 if self.__cache.get(base64.b64encode(urlhash)) is not None:
-                    return (False, [])
+                    return False, []
             else:
                 possiblethreats.append(urlhash)
 
-        return (True,possiblethreats)
+        return True,possiblethreats
 
     def __checkLocaldb(self, hashesofurl):
-        possiblethreats = []
+        possiblethreats = {}
 
         for threat in self.__threats:
+            possiblethreats.setdefault(threat,[])
             for urlhash in hashesofurl:
                 if self.__tstore.exist(threat,urlhash[:__PREFIXLEN__]):
-                    possiblethreats.append((threat,urlhash))
+                    possiblethreats[threat].append(urlhash)
 
         return possiblethreats
