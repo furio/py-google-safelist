@@ -17,7 +17,7 @@ rediscfg = config.getRedis()
 apiRequest = requestsapi.RequestData(config.getGoogleKey(), config.getGoogleCompany(), config.getGoogleDbSize())
 
 # ThreatList (might be config)
-threatlist = apiRequest.getthreatlists()[0:2]
+threatlist = apiRequest.getthreatlists()
 
 # Store(s)
 rediscli = redis.StrictRedis(host=rediscfg['host'], port=rediscfg['port'], db=rediscfg['db'])
