@@ -90,7 +90,7 @@ class ThreatMatchesResponse(object):
 
 class FullHashesFindResponse(object):
     def __init__(self, jsonobject):
-        self.nextcheck = 1
+        self.nextcheck = 0
         self.negativecache = 0
         self.matches = []
 

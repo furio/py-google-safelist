@@ -19,7 +19,7 @@ class UpdateResponseHashes(object):
     
     def __str__(self):
         strobj = ""
-        strobj += "PrefixLen: " + str(self.prefix) + ", "
+        strobj += "Prefix: " + str(self.prefix) + ", "
         strobj += "Hashes: " + str(self.hashes) + "\n"
         return strobj
 
@@ -28,7 +28,7 @@ class UpdateResponseIndices(object):
         if not jsoninput["compressionType"] == "RAW":
             raise ValueError("Only RAW compression supported")
 
-        self.indices = jsoninput["rawIndices"]
+        self.indices = jsoninput["rawIndices"]['indices']
     
     def __str__(self):
         strobj = ""

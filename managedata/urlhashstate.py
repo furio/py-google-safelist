@@ -29,14 +29,19 @@ class UrlHashState(object):
         print "[CHECKER] DB matches: " + str( len(uniquepossibethreats) )
         if len(uniquepossibethreats) == 0:
             uniquepossibethreats = hashesofurl[:]
+            for tx in self.__threats:
+                possiblethreats[tx] = uniquepossibethreats
             # return False
         
         # Check if the cache has something
         cachestatus, cachehashes = self.__checkCache(uniquepossibethreats)
+        print "[CHECKER] Cache status: " + str( cachestatus )
+        print "[CHECKER] Cache matches to check: " + str( len(cachehashes) )
         if cachestatus is False:
             return True
 
-        # Can i call G 
+        # Can i call GeneratorExit
+        print "[CHECKER] Timeout check: " + str( self.__nextrequest ) + " || " +str(int(time.time()))
         if self.__nextrequest > int(time.time()):
             return False
 
@@ -45,7 +50,9 @@ class UrlHashState(object):
             if len(possiblethreats[tkey]) == 0:
                 del possiblethreats[tkey]
 
+        print "[CHECKER] Preparing to call G : " + str( possiblethreats )
         gcall = self.__collectFromGoogle(possiblethreats)
+        print "[CHECKER] Call G done : " + str( gcall )
         if gcall is None:
             # backoff
             return False

@@ -49,7 +49,7 @@ class ProcessingDataFromGoogle(object):
 
         print "["+threatname+"] Prefixes " + str(prefixlen)
         print "["+threatname+"] Hashes " + str(len(addhashes))
-        print "["+threatname+"] Indices " + str(len(remindices))
+        print "["+threatname+"] Indices " + str(len(remindices)) +  " || " + str(remindices)
 
         # Modify store
         if len(remindices) > 0:
