@@ -64,8 +64,6 @@ class RequestData(object):
         # print r.text
 
         if r.status_code < 400:
-            return r.json()
+            return responseobjects.FullHashesFindResponse(r.json())
 
-        return None        
-        
-        # URL / EXECUTABLE / IP_RANGE
+        return None
