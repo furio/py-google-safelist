@@ -2,8 +2,8 @@ import threading
 import random 
 import logging
 
-# Less than one could make Google ban you, use for testing only
-__SPEEDFACTOR__ = 0.01
+# Less than 1 could make Google ban you, use for testing only.
+__SPEEDFACTOR__ = 1
 
 # Many workers as dbs
 class ProcessingDataFromGoogle(object):
