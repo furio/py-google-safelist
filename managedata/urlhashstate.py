@@ -1,6 +1,7 @@
 import urlhashes
 import base64
 import time
+import logging
 
 # Prefix is fixed now... should be changed to store specific
 __PREFIXLEN__ = 4
@@ -20,28 +21,25 @@ class UrlHashState(object):
     
     def isUrlBlocked(self,url):
         hashesofurl = self.__getUrlHashes(url)
-
-        print "[CHECKER] Hashes: " + str(hashesofurl)
+        
+        logging.info("[CHECKER] Hashes: %s", str(len(hashesofurl)))
 
         # From db
         possiblethreats = self.__checkLocaldb(hashesofurl)
         uniquepossibethreats = list(set([y for x in possiblethreats.keys() for y in possiblethreats[x]]))
-        print "[CHECKER] DB matches: " + str( len(uniquepossibethreats) )
+        logging.info("[CHECKER] DB matches: %s", str( len(uniquepossibethreats) ))
         if len(uniquepossibethreats) == 0:
-            uniquepossibethreats = hashesofurl[:]
-            for tx in self.__threats:
-                possiblethreats[tx] = uniquepossibethreats
-            # return False
+            return False
         
         # Check if the cache has something
         cachestatus, cachehashes = self.__checkCache(uniquepossibethreats)
-        print "[CHECKER] Cache status: " + str( cachestatus )
-        print "[CHECKER] Cache matches to check: " + str( len(cachehashes) )
+        logging.info("[CHECKER] Cache status: %s", str( cachestatus ))
+        logging.info("[CHECKER] Cache matches to check: %s", str( len(cachehashes) ))
         if cachestatus is False:
             return True
 
         # Can i call GeneratorExit
-        print "[CHECKER] Timeout check: " + str( self.__nextrequest ) + " || " +str(int(time.time()))
+        logging.info("[CHECKER] Timeout check: %s || %s", str( self.__nextrequest ), str(int(time.time())) )
         if self.__nextrequest > int(time.time()):
             return False
 
@@ -50,23 +48,33 @@ class UrlHashState(object):
             if len(possiblethreats[tkey]) == 0:
                 del possiblethreats[tkey]
 
-        print "[CHECKER] Preparing to call G : " + str( possiblethreats )
+        logging.info("[CHECKER] Preparing to call G : %s", str( possiblethreats ))
         gcall = self.__collectFromGoogle(possiblethreats)
-        print "[CHECKER] Call G done : " + str( gcall )
+        logging.info("[CHECKER] Call G done : %s", str( gcall ))
         if gcall is None:
-            # backoff
             return False
 
-        if not gcall is True:
-            return {}
+        isthreat = self.__updateLocalCache(gcall, cachehashes)
+        
+        return isthreat
 
-        return gcall
-        # Call getattr
-        # store
-        # return
+    def __updateLocalCache(self, gresult, hashes):
+        self.__nextrequest = int(time.time()) + gresult.nextcheck
+        isthreat = False
 
+        for x in hashes:
+            self.__cache.setex(base64.b64encode(x[:__PREFIXLEN__]), gresult.negativecache + 1, '')
 
-        # return False
+        if len(gresult.matches) == 0:
+            return isthreat
+
+        
+        for mx in gresult.matches:
+            if mx.threat is not None and mx.threat.hash in hashes:
+                isthreat = True
+                self.__cache.setex(base64.b64encode(mx.threat.hash), mx.cache + 1, '')
+
+        return isthreat
 
     def __collectFromGoogle(self, possiblethreats):
         encodedprefixes = set()
@@ -84,7 +92,7 @@ class UrlHashState(object):
 
         encodedprefixes = list(encodedprefixes)
 
-        print "[CHECKER] Sending request for : " + str( threatsandstates ) + " and " + str(len(encodedprefixes)) + " prefixes"
+        logging.info("[CHECKER] Sending request for : %s and %s prefixes", str( threatsandstates ), str(len(encodedprefixes)))
         return self.__apimanager.getthreatspecific(threatsandstates,encodedprefixes)
         
 

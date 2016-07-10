@@ -1,1 +1,0 @@
-from safebrowse_pb2 import *

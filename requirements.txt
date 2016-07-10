@@ -1,6 +1,5 @@
 Cython==0.24
 plyvel==0.9
-protobuf==3.0.0b3
 requests==2.10.0
 redis==2.10.5
 flask==0.11.1

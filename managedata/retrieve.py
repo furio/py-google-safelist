@@ -1,6 +1,8 @@
 import threading
 import random 
+import logging
 
+# Less than one could make Google ban you, use for testing only
 __SPEEDFACTOR__ = 0.01
 
 # Many workers as dbs
@@ -47,21 +49,21 @@ class ProcessingDataFromGoogle(object):
 
         prefixlen = list(prefixlen)
 
-        print "["+threatname+"] Prefixes " + str(prefixlen)
-        print "["+threatname+"] Hashes " + str(len(addhashes))
-        print "["+threatname+"] Indices " + str(len(remindices)) +  " || " + str(remindices)
+        logging.info("[%s] Prefixes %s", threatname, str(prefixlen))
+        logging.info("[%s] Hashes %s", threatname, str(len(addhashes)))
+        logging.info("[%s] Indices %s", threatname, str(len(remindices)))
 
         # Modify store
         if len(remindices) > 0:
-            print "["+threatname+"] Modifying indices"
+            logging.info("[%s] Modifying indices", threatname)
             tstore.removeat(threatname, remindices)
 
         if len(addhashes) > 0:
-            print "["+threatname+"] Modifying hashes"
+            logging.info("[%s] Modifying hashes", threatname)
             tstore.putsKeys(threatname, addhashes)
 
         if len(prefixlen) > 0:
-            print "["+threatname+"] Modifying prefixes"
+            logging.info("[%s] Modifying prefixes", threatname)
             tstore.set('KEEPER',threatname + ':prefixlen', str(list(prefixlen)))
 
     def __worker(self, threatname, stopevent, tstore, reqclass):
@@ -74,7 +76,7 @@ class ProcessingDataFromGoogle(object):
             #
             while True:
                 data = reqclass.getupdateforthreat(threatname, lastclistate)
-                print "["+threatname+"] Received data"
+                logging.info("[%s] Received data", threatname)
                 if data is not None:
                     # reset backoff
                     failedbackoff = 0
@@ -88,12 +90,12 @@ class ProcessingDataFromGoogle(object):
 
                         dbchecksum = tstore.keyschecksum(threatname, True)
 
-                        print "["+threatname+"] Checksums google/us: " + googlechecksum + " || " + dbchecksum
+                        logging.info("[%s] Checksums google/us: %s || %s", threatname, googlechecksum, dbchecksum)
                         if dbchecksum == googlechecksum:
                             tstore.set('KEEPER',threatname + ':lastclistate', lastclistate)
                             tstore.set('KEEPER',threatname + ':checksum', dbchecksum)
                         else:
-                            print "["+threatname+"] Destroyin db"
+                            logging.info("[%s] Destroyin db", threatname)
                             lastclistate = None
                             tstore.delete('KEEPER',threatname + ':lastclistate')
                             tstore.delete('KEEPER',threatname + ':checksum')
@@ -101,16 +103,16 @@ class ProcessingDataFromGoogle(object):
                             tstore.truncate(threatname)                                                                  
 
                         # Sleep
-                        print "["+threatname+"][DONE] Sleep for " + str(data.nextcheck)
+                        logging.info("[%s][DONE] Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                     else:
-                        print "["+threatname+"][DONE] Clistate is the same. Sleep for " + str(data.nextcheck)
+                        logging.info("[%s][DONE] Clistate is the same. Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                         break
                 else:
                     # Should backoff here
                     sleeptime = min((2**(failedbackoff) * 15 * 60 * (random.uniform(0, 1) + 1)), 24*60*60)
-                    print "["+threatname+"][DONE] Empty data. Sleep for " + str(sleeptime)
+                    logging.info("[%s][DONE] Empty data. Sleep for %s", threatname, str(sleeptime))
                     
                     stopevent.wait(sleeptime * __SPEEDFACTOR__ if self.__speedbreak else sleeptime)
                     if ( failedbackoff <= 8):

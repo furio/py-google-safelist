@@ -4,8 +4,11 @@ import os
 import managedata
 import cfg
 import redis
+import logging
+import logging.config
 
 # Cfg
+logging.config.fileConfig('logger.conf')
 config = cfg.Config(os.path.abspath('./config.cfg'))
 dbpath = os.path.abspath(config.getLeveldbPath())
 rediscfg = config.getRedis()
@@ -24,7 +27,7 @@ urlmanager = managedata.UrlHashState(threatlist, tstore, rediscli, apiRequest)
 
 # Flask
 from flask import Flask
-app = Flask(__name__)
+app = Flask('pysafechecker')
 
 # Circular stuff
 import routes
