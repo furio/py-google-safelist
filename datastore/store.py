@@ -1,6 +1,7 @@
 import plyvel
 import hashlib
 import base64
+import pickle
 
 class ThreatStore(object):
     def __init__(self,dbpath,dbtypes):
@@ -41,14 +42,28 @@ class ThreatStore(object):
             for key in remkeys:
                 self.delete(store,key)
 
+    def __get(self,store,key):
+        return self.__dbpointers[store].get(key)
+
     def get(self,store,key):
-        return self.__dbpointers[store].get(str(key))
+        simpleget = self.__get(store,str(key))
+        
+        if simpleget is not None:
+            simpleget = pickle.loads(simpleget)
+
+        return simpleget        
 
     def exist(self,store,key):
         return self.get(store,key) is not None
 
-    def set(self,store,key,val=''):
+    def __set(self,store,key):
         self.__dbpointers[store].put(str(key),str(val))
+
+    def setPickle(self,store,key,val=''):
+        if val is None:
+            val = ''
+        
+        self.__set(store,str(key),str(pickle.dumps(val)))        
 
     def puts(self,store,tuplelist):
         with self.__dbpointers[store].write_batch() as writer:

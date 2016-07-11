@@ -35,7 +35,7 @@ class ProcessingDataFromGoogle(object):
 
     def waitforclose(self):
         for runningthreads in self.__workers:
-            runningthreads[0].join()            
+            runningthreads[0].join()
 
     def __addandremdata(self, threatname, tstore, data):
         remindices = []
@@ -50,8 +50,6 @@ class ProcessingDataFromGoogle(object):
             for remobj in resp.removals:
                 for y in remobj.indices:
                     remindices.extend(y.indices)
-
-        prefixlen = list(prefixlen)
 
         logging.info("[%s] Prefixes %s", threatname, str(prefixlen))
         logging.info("[%s] Hashes %s", threatname, str(len(addhashes)))
@@ -68,7 +66,13 @@ class ProcessingDataFromGoogle(object):
 
         if len(prefixlen) > 0:
             logging.info("[%s] Modifying prefixes", threatname)
-            tstore.set('KEEPER',threatname + ':prefixlen', str(list(prefixlen)))
+            currset = tstore.get('KEEPER',threatname + ':prefixlen')
+            if currset is None:
+                currset = prefixlen
+            else:
+                currset |= prefixlen
+            
+            tstore.set('KEEPER',threatname + ':prefixlen', currset)
 
     def __worker(self, threatname, stopevent, tstore, reqclass):
         failedbackoff = 0
