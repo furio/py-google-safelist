@@ -56,10 +56,10 @@ class ThreatStore(object):
     def exist(self,store,key):
         return self.get(store,key) is not None
 
-    def __set(self,store,key):
+    def __set(self,store,key,val):
         self.__dbpointers[store].put(str(key),str(val))
 
-    def setPickle(self,store,key,val=''):
+    def set(self,store,key,val=''):
         if val is None:
             val = ''
         
@@ -78,9 +78,19 @@ class ThreatStore(object):
     def delete(self,store,key):
         self.__dbpointers[store].delete(str(key))
 
+    def keys(self,store):
+        return self.__dbpointers[store].iterator(include_value=False)
+
+    def keyslen(self,store):
+        lens = set()
+        for key in self.keys(store):
+            lens.add(len(key))
+
+        return lens
+
     def keyschecksum(self,store,baseencoded=False):
         keys = []
-        for key in self.__dbpointers[store].iterator(include_value=False):
+        for key in self.keys(store):
             keys.extend(key)
 
         hashdata = hashlib.sha256(b''.join(keys)).digest()

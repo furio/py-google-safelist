@@ -71,8 +71,7 @@ class ProcessingDataFromGoogle(object):
                 currset = prefixlen
             else:
                 currset |= prefixlen
-            
-            tstore.set('KEEPER',threatname + ':prefixlen', currset)
+            tstore.set('KEEPER', threatname + ':prefixlen', currset)
 
     def __worker(self, threatname, stopevent, tstore, reqclass):
         failedbackoff = 0
@@ -114,6 +113,12 @@ class ProcessingDataFromGoogle(object):
                         logging.info("[%s][DONE] Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                     else:
+                        prefixlen = tstore.get('KEEPER',threatname + ':prefixlen')
+                        storeprefixlen = tstore.keyslen(threatname)
+                        if prefixlen is not None and prefixlen != storeprefixlen:
+                            logging.info("[%s][DONE] Keys prefix len diverged, resetting. Calc: %s, Own: %s", threatname, str(storeprefixlen), str(prefixlen))
+                            tstore.set('KEEPER', threatname + ':prefixlen', storeprefixlen)
+                        
                         logging.info("[%s][DONE] Clistate is the same. Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                         break
