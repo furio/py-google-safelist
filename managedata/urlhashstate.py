@@ -4,7 +4,7 @@ import time
 import logging
 from datastore import KeeperStore
 
-# Prefix is fixed now... should be changed to store specific
+# Prefix fo cache checks/sets
 __PREFIXLEN__ = 4
 
 
