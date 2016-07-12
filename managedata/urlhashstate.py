@@ -2,6 +2,7 @@ import urlhashes
 import base64
 import time
 import logging
+from datastore import KeeperStore
 
 # Prefix is fixed now... should be changed to store specific
 __PREFIXLEN__ = 4
@@ -81,8 +82,8 @@ class UrlHashState(object):
         threatsandstates = []
 
         for tkey in possiblethreats.keys():
-            if (self.__tstore.exist('KEEPER',tkey + ':lastclistate')):
-                threatsandstates.append((tkey, self.__tstore.get('KEEPER',tkey + ':lastclistate')))
+            if KeeperStore.hasLastClistate(self.__tstore, tkey):
+                threatsandstates.append((tkey, KeeperStore.getLastClistate(self.__tstore, tkey)))
 
             for vhash in possiblethreats[tkey]:
                 encodedprefixes.add(base64.b64encode(vhash[:__PREFIXLEN__]))
@@ -117,8 +118,14 @@ class UrlHashState(object):
 
         for threat in self.__threats:
             possiblethreats.setdefault(threat,[])
+
+            possiblelens = KeeperStore.getLastClistate(self.__tstore, threat)
+            if len(possiblelens) == 0:
+                possiblelens = set([__PREFIXLEN__])
+
             for urlhash in hashesofurl:
-                if self.__tstore.exist(threat,urlhash[:__PREFIXLEN__]):
-                    possiblethreats[threat].append(urlhash)
+                for pfxlen in possiblelens:
+                    if self.__tstore.exist(threat,urlhash[:pfxlen]):
+                        possiblethreats[threat].append(urlhash)
 
         return possiblethreats

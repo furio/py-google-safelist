@@ -1,6 +1,7 @@
 import threading
 import random 
 import logging
+from datastore import KeeperStore
 
 # Less than 1 could make Google ban you, use for testing only.
 __SPEEDFACTOR__ = 1
@@ -66,19 +67,20 @@ class ProcessingDataFromGoogle(object):
 
         if len(prefixlen) > 0:
             logging.info("[%s] Modifying prefixes", threatname)
-            currset = tstore.get('KEEPER',threatname + ':prefixlen')
+            
+            currset = KeeperStore.getPrefixes(tstore,threatname)
             if currset is None:
                 currset = prefixlen
             else:
                 currset |= prefixlen
-            tstore.set('KEEPER', threatname + ':prefixlen', currset)
+            KeeperStore.setPrefixes(tstore,threatname,currset)
 
     def __worker(self, threatname, stopevent, tstore, reqclass):
         failedbackoff = 0
 
         while(not stopevent.is_set()):
             #
-            lastclistate = tstore.get('KEEPER',threatname + ':lastclistate')
+            lastclistate = KeeperStore.getLastClistate(tstore, threatname)
             googlechecksum = None
             #
             while True:
@@ -99,25 +101,23 @@ class ProcessingDataFromGoogle(object):
 
                         logging.info("[%s] Checksums google/us: %s || %s", threatname, googlechecksum, dbchecksum)
                         if dbchecksum == googlechecksum:
-                            tstore.set('KEEPER',threatname + ':lastclistate', lastclistate)
-                            tstore.set('KEEPER',threatname + ':checksum', dbchecksum)
+                            KeeperStore.setLastClistate(tstore, threatname, lastclistate)
+                            KeeperStore.setChecksum(tstore, threatname, dbchecksum)
                         else:
                             logging.info("[%s] Destroyin db", threatname)
                             lastclistate = None
-                            tstore.delete('KEEPER',threatname + ':lastclistate')
-                            tstore.delete('KEEPER',threatname + ':checksum')
-                            tstore.delete('KEEPER',threatname + ':prefixlen')
+                            KeeperStore.truncate(tstore, threatname)
                             tstore.truncate(threatname)                                                                  
 
                         # Sleep
                         logging.info("[%s][DONE] Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                     else:
-                        prefixlen = tstore.get('KEEPER',threatname + ':prefixlen')
+                        prefixlen = KeeperStore.getPrefixes(tstore, threatname)
                         storeprefixlen = tstore.keyslen(threatname)
                         if prefixlen is not None and prefixlen != storeprefixlen:
                             logging.info("[%s][DONE] Keys prefix len diverged, resetting. Calc: %s, Own: %s", threatname, str(storeprefixlen), str(prefixlen))
-                            tstore.set('KEEPER', threatname + ':prefixlen', storeprefixlen)
+                            KeeperStore.setPrefixes(tstore, threatname, storeprefixlen)
                         
                         logging.info("[%s][DONE] Clistate is the same. Sleep for %s", threatname, str(data.nextcheck))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
