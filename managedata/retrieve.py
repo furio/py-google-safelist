@@ -1,6 +1,7 @@
 import threading
 import random 
 import logging
+import datetime
 from datastore import KeeperStore
 
 # Less than 1 could make Google ban you, use for testing only.
@@ -110,7 +111,7 @@ class ProcessingDataFromGoogle(object):
                             tstore.truncate(threatname)                                                                  
 
                         # Sleep
-                        logging.info("[%s][DONE] Sleep for %s", threatname, str(data.nextcheck))
+                        logging.info("[%s][DONE] Sleep for %s", threatname, str(datetime.timedelta(seconds=data.nextcheck)))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                     else:
                         prefixlen = KeeperStore.getPrefixes(tstore, threatname)
@@ -119,13 +120,13 @@ class ProcessingDataFromGoogle(object):
                             logging.info("[%s][DONE] Keys prefix len diverged, resetting. Calc: %s, Own: %s", threatname, str(storeprefixlen), str(prefixlen))
                             KeeperStore.setPrefixes(tstore, threatname, storeprefixlen)
                         
-                        logging.info("[%s][DONE] Clistate is the same. Sleep for %s", threatname, str(data.nextcheck))
+                        logging.info("[%s][DONE] Clistate is the same. Sleep for %s", threatname, str(datetime.timedelta(seconds=data.nextcheck)))
                         stopevent.wait(data.nextcheck * __SPEEDFACTOR__ if self.__speedbreak else data.nextcheck)
                         break
                 else:
                     # Should backoff here
-                    sleeptime = min((2**(failedbackoff) * 15 * 60 * (random.uniform(0, 1) + 1)), 24*60*60)
-                    logging.info("[%s][DONE] Empty data. Sleep for %s", threatname, str(sleeptime))
+                    sleeptime = int(min((2**(failedbackoff) * 15 * 60 * (random.uniform(0, 1) + 1)), 24*60*60))
+                    logging.info("[%s][DONE] Empty data. Sleep for %s", threatname, str(datetime.timedelta(seconds=sleeptime)))
                     
                     stopevent.wait(sleeptime * __SPEEDFACTOR__ if self.__speedbreak else sleeptime)
                     if ( failedbackoff <= 8):
