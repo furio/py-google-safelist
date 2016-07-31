@@ -1,16 +1,16 @@
 # Python service for Google Safe Browsing APIs (v4)
 
-This utility allows you to store locally and interrogate 
+This utility allows you to store locally and check an URL against  
 the Google safe browsing api (v4) https://developers.google.com/safe-browsing/v4/
 
-The service can be interrogated via web on port 5000 by doing a POST to /url-check
-passing as body with a JSON fromatted as
+The service can be used via web on port 5000 by doing a POST to /url-check
+passing as body a JSON with similar content:
 ```
 {"url":"http://testsafebrowsing.appspot.com/apiv4/ANY_PLATFORM/MALWARE/URL/"}
 ```
 
-This service is a pet project, cannot be called production ready or anything.
-You're free to try it, but I reccomend you to use the Google official implementation at: https://github.com/google/safebrowsing/
+This service is a just a pet project, cannot be called production ready or anything.
+You're free to try/use it, but I reccomend you to use the Google official implementation at: https://github.com/google/safebrowsing/
 
 # Setup
 
@@ -21,7 +21,7 @@ Once you've the *API key* add in path a file named "config.cfg" with content lik
 ```
 [google]
 key=---YOUR-GOOGLE-API-KEY---
-companyname=--YUOR-COMPANY--
+companyname=--YOUR-COMPANY--
 threatsize=4096
 
 [redis]
@@ -33,7 +33,7 @@ db=0
 path=./save
 ```
 
-You'll need also a Redis server (as per config section).
+You'll need also a Redis server, it'll be used as a cache for tempoarary queries.
 
 ## Docker
 
