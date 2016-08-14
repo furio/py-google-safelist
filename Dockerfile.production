@@ -6,5 +6,5 @@ RUN mv py-google-safelist-master /opt/app
 WORKDIR /opt/app
 RUN pip install --requirement requirements.txt
 RUN mkdir save
-VOLUMES ["/opt/app/save","/opt/app/conf-files"] 
+VOLUME ["/opt/app/save","/opt/app/conf-files"] 
 CMD ["python", "main.py"]

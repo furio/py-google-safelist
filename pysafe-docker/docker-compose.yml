@@ -6,7 +6,7 @@ services:
             - back
     
     safelist:
-        build: .
+        build:
             context: ../
             dockerfile: Dockerfile.production   
         networks:
@@ -15,14 +15,15 @@ services:
         links:
             - cache
         volumes:
-            - pysafe-leveldb:/opt/app/save
-            - pysafe-config:/opt/app/conf-files
+            - leveldb:/opt/app/save
+            - config:/opt/app/conf-files
         ports:
             - "5000:5000"
 volumes:
-    pysafe-leveldb:
-    pysafe-config:
-        external: true
+    leveldb:
+    config:
+        external:
+            name: pysafe-config
 networks:
     back:
     front:
