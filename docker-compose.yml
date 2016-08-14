@@ -9,6 +9,6 @@ services:
             - cache
         volumes:
             # Use this for debug
-            - /Users/furione/git/py-google-safelist:/tmp/py-project
+            - ${HOST_SRC_PATH}:/tmp/py-project
         ports:
             - "5000:5000"
