@@ -8,8 +8,8 @@ import logging
 import logging.config
 
 # Cfg
-logging.config.fileConfig('logger.conf')
-config = cfg.Config(os.path.abspath('./config.cfg'))
+logging.config.fileConfig('./conf-files/logger.conf')
+config = cfg.Config(os.path.abspath('./conf-files/config.cfg'))
 dbpath = os.path.abspath(config.getLeveldbPath())
 rediscfg = config.getRedis()
 
