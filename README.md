@@ -30,21 +30,16 @@ port=6379
 db=0
 
 [leveldb]
-path=./save
+path=/opt/app/save
 ```
 
 You'll need also a Redis server, it'll be used as a cache for tempoarary queries.
 
 ## Docker
 
-If you want there is a docker-compose.yml file in the root that should be edited with 
-the appropriate source path
+### Testing
 
-Edit in docker-compose.yml the source path for the volume mount
-```
-        volumes:
-            - /Users/furione/git/py-google-safelist:/tmp/py-project
-```
+In docker-compose.yml tha variable HOST_SRC_PATH is used to determine where on the host the app is. 
 
 Once up you can enter the python container and start the server with
 
@@ -54,4 +49,7 @@ cd /tmp/py-project
 python main-py
 ```
 
-You can use the Dockerfile provided to make also an image with the source already inside and autorun it
+### Production
+
+In ```docker-release/``` there is a docker-compose.xml file, it will expose the service on port 5000.
+The system will create a datavolume to save leveldb data and require an external datavolume named ```pysafe-config``` to contain the config files

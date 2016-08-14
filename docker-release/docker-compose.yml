@@ -2,13 +2,27 @@ version: '2'
 services:
     cache:
         image: redis
+        networks:
+            - back
     
-    pydbg:
+    safelist:
         build: .
+            context: ../
+            dockerfile: Dockerfile.production   
+        networks:
+            - back
+            - front     
         links:
             - cache
         volumes:
-            # This is for production (the level db directory, config dependant)
-            - /Users/furione/git/py-google-safelist/save:/tmp/py-project/save
+            - pysafe-leveldb:/opt/app/save
+            - pysafe-config:/opt/app/conf-files
         ports:
             - "5000:5000"
+volumes:
+    pysafe-leveldb:
+    pysafe-config:
+        external: true
+networks:
+    back:
+    front:

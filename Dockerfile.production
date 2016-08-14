@@ -1,0 +1,10 @@
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y python python-pip libleveldb1v5 libleveldb-dev wget unzip
+WORKDIR /tmp
+RUN wget -o /dev/null https://github.com/furio/py-google-safelist/archive/master.zip -O temp.zip; unzip temp.zip; rm temp.zip
+RUN mv py-google-safelist-master /opt/app
+WORKDIR /opt/app
+RUN pip install --requirement requirements.txt
+RUN mkdir save
+VOLUMES ["/opt/app/save","/opt/app/conf-files"] 
+CMD ["python", "main.py"]
