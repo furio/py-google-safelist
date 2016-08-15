@@ -2,6 +2,10 @@ import plyvel
 import hashlib
 import base64
 import pickle
+import logging
+import binascii
+
+__DEFAULT_VAL__ = '' 
 
 class ThreatStore(object):
     def __init__(self,dbpath,dbtypes):
@@ -11,6 +15,18 @@ class ThreatStore(object):
             self.__dbpointers[x] = self.__createdb(x)
       
         self.__dbpointers['KEEPER'] = self.__createdb('master-records')
+
+    @staticmethod
+    def __serializeKey(val):
+        return str(val)
+
+    @staticmethod
+    def __serializeValue(val):
+        return pickle.dumps(val)
+
+    @staticmethod 
+    def __unserializeValue(val):
+        return pickle.loads(val)
 
     def __createdb(self, dbname):
         return plyvel.DB(self.__dbpath + '/' + dbname, create_if_missing=True)
@@ -43,13 +59,17 @@ class ThreatStore(object):
                 self.delete(store,key)
 
     def __get(self,store,key):
-        return self.__dbpointers[store].get(key)
+        return self.__dbpointers[store].get(ThreatStore.__serializeKey(key))
 
     def get(self,store,key):
-        simpleget = self.__get(store,str(key))
+        simpleget = self.__get(store,key)
         
         if simpleget is not None:
-            simpleget = pickle.loads(simpleget)
+            try:
+                simpleget = ThreatStore.__unserializeValue(simpleget)
+            except:
+                logging.error("[LevelDB][%s] Unwrapping value for key %s failed, returning default.", store, binascii.hexlify(key))
+                simpleget = __DEFAULT_VAL__           
 
         return simpleget        
 
@@ -57,26 +77,29 @@ class ThreatStore(object):
         return self.get(store,key) is not None
 
     def __set(self,store,key,val):
-        self.__dbpointers[store].put(str(key),str(val))
+        self.__dbpointers[store].put(ThreatStore.__serializeKey(key),ThreatStore.__serializeValue(val))
 
-    def set(self,store,key,val=''):
+    def set(self,store,key,val=__DEFAULT_VAL__):
         if val is None:
-            val = ''
+            val = __DEFAULT_VAL__
         
-        self.__set(store,str(key),str(pickle.dumps(val)))        
+        self.__set(store,key,val)    
 
     def puts(self,store,tuplelist):
         with self.__dbpointers[store].write_batch() as writer:
             for keyandval in tuplelist:
-                writer.put(str(keyandval[0]),str(keyandval[1]))
+                writer.put(ThreatStore.__serializeKey(keyandval[0]),ThreatStore.__serializeValue(keyandval[1]))
 
-    def putsKeys(self,store,keylist,val=''):
+    def putsKeys(self,store,keylist,val=__DEFAULT_VAL__):
         with self.__dbpointers[store].write_batch() as writer:
             for key in keylist:
-                writer.put(str(key),str(val))
+                if val is None:
+                    val = __DEFAULT_VAL__
+                
+                writer.put(ThreatStore.__serializeKey(key),ThreatStore.__serializeValue(val))
 
     def delete(self,store,key):
-        self.__dbpointers[store].delete(str(key))
+        self.__dbpointers[store].delete(ThreatStore.__serializeKey(key))
 
     def keys(self,store):
         return self.__dbpointers[store].iterator(include_value=False)
@@ -101,6 +124,7 @@ class ThreatStore(object):
 
     def truncate(self,store):
         # Possible KABOOM
+        logging.info("[LevelDB][%s] Truncating", store)
         self.__dbpointers[store].close()
         self.__truncatedb(store)
         self.__dbpointers[store] = self.__createdb(store)

@@ -5,6 +5,7 @@ COPY docker-wait.sh /tmp/loopme.sh
 RUN chmod +x /tmp/loopme.sh
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
+RUN pip install ptvsd
 
 # Fake loop to keep container opened
 RUN mkdir /tmp/py-project

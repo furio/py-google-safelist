@@ -4,7 +4,7 @@ import time
 import logging
 from datastore import KeeperStore
 
-# Prefix fo cache checks/sets
+# Default prefix len for cache checks/sets
 __PREFIXLEN__ = 4
 
 
@@ -119,8 +119,8 @@ class UrlHashState(object):
         for threat in self.__threats:
             possiblethreats.setdefault(threat,[])
 
-            possiblelens = KeeperStore.getLastClistate(self.__tstore, threat)
-            if len(possiblelens) == 0:
+            possiblelens = KeeperStore.getPrefixes(self.__tstore, threat)
+            if possiblelens is None or len(possiblelens) == 0:
                 possiblelens = set([__PREFIXLEN__])
 
             for urlhash in hashesofurl:

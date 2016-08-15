@@ -12,3 +12,5 @@ services:
             - ${HOST_SRC_PATH}:/tmp/py-project
         ports:
             - "5000:5000"
+            # debug
+            - "3000:3000"
