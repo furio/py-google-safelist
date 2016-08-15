@@ -5,6 +5,7 @@ RUN wget -o /dev/null https://github.com/furio/py-google-safelist/archive/master
 RUN mv py-google-safelist-master /opt/app
 WORKDIR /opt/app
 RUN pip install --requirement requirements.txt
+RUN chmod +x /opt/app/docker-wait.sh
 RUN mkdir save
 VOLUME ["/opt/app/save","/opt/app/conf-files"] 
 CMD ["python", "main.py"]

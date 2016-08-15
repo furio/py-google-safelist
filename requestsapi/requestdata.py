@@ -31,7 +31,8 @@ class RequestData(object):
         r = requests.get("https://safebrowsing.googleapis.com/v4/threatLists", {'key': self.__apikey})
         if r.status_code < 400:
             respObject = r.json()
-            return [x["threatType"] for x in respObject["threatLists"]]
+            # With __ANY_PLATFORM__ i get the same list multiple times
+            return list(set([x["threatType"] for x in respObject["threatLists"]]))
         
         return []
 
