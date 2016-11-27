@@ -17,7 +17,7 @@ You're free to try/use it, but I reccomend you to use the Google official implem
 To use this package you must obtain an *API key* from the
 [Google Developer Console](https://console.developers.google.com/).
 
-Once you've the *API key* add in path a file named "config.cfg" with content like:
+Once you've the *API key* add in path "conf-files/" a file named "config.cfg" with content like:
 ```
 [google]
 key=---YOUR-GOOGLE-API-KEY---
@@ -33,7 +33,7 @@ db=0
 path=/opt/app/save
 ```
 
-You'll need also a Redis server, it'll be used as a cache for tempoarary queries.
+You'll need also a Redis server, it'll be used as a cache for soring result of queries with ttl.
 
 ## Docker
 
